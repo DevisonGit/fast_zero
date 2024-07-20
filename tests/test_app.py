@@ -1,30 +1,13 @@
 from http import HTTPStatus
 
+from fast_zero.schemas import UserPublic
+
 
 def test_root_retornar_ok_e_hello_world(client):
     response = client.get('/')
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'message': 'Hello world!'}
-
-
-def test_root_retornar_ok_e_hello_world_html(client):
-    response = client.get('/html')
-
-    assert response.status_code == HTTPStatus.OK
-    assert (
-        response.text
-        == """
-    <html>
-        <head>
-            <title> Nosso hello world</title>
-        </head>
-        <body>
-            <h1> Hello World! </h1>
-        </body>
-    </html>
-    """
-    )
 
 
 def test_create_user(client):
@@ -45,30 +28,53 @@ def test_create_user(client):
     }
 
 
-def test_read_users(client):
+def test_create_existing_user_name(client, user):
+    response = client.post(
+        '/users/',
+        json={
+            'username': 'Teste',
+            'email': 'alice@exemplo.com',
+            'password': 'secret',
+        },
+    )
+
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+
+
+def test_create_existing_user_email(client, user):
+    response = client.post(
+        '/users/',
+        json={
+            'username': 'Alice',
+            'email': 'teste@teste.com',
+            'password': 'secret',
+        },
+    )
+
+    assert response.status_code == HTTPStatus.BAD_REQUEST
+
+
+def test_read_users_without_users(client):
     response = client.get('/users/')
 
     assert response.status_code == HTTPStatus.OK
-    assert response.json() == {
-        'users': [
-            {
-                'id': 1,
-                'username': 'alice',
-                'email': 'alice@exemplo.com',
-            },
-        ]
-    }
+    assert response.json() == {'users': []}
 
 
-def test_read_user(client):
+def test_read_users_with_users(client, user):
+    user_schema = UserPublic.model_validate(user).model_dump()
+    response = client.get('/users/')
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {'users': [user_schema]}
+
+
+def test_read_user(client, user):
+    user_schema = UserPublic.model_validate(user).model_dump()
     response = client.get('/users/1')
 
     assert response.status_code == HTTPStatus.OK
-    assert response.json() == {
-        'id': 1,
-        'username': 'alice',
-        'email': 'alice@exemplo.com',
-    }
+    assert response.json() == user_schema
 
 
 def test_read_user_not_found(client):
@@ -78,7 +84,7 @@ def test_read_user_not_found(client):
     assert response.json() == {'detail': 'User not found'}
 
 
-def test_update_users(client):
+def test_update_users(client, user):
     response = client.put(
         '/users/1',
         json={
@@ -110,7 +116,7 @@ def test_update_not_found(client):
     assert response.json() == {'detail': 'User not found'}
 
 
-def test_delete_user(client):
+def test_delete_user(client, user):
     response = client.delete('/users/1')
 
     assert response.status_code == HTTPStatus.OK
