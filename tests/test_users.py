@@ -25,7 +25,7 @@ def test_create_existing_user_name(client, user):
     response = client.post(
         '/users/',
         json={
-            'username': 'Teste',
+            'username': user.username,
             'email': 'alice@exemplo.com',
             'password': 'secret',
         },
@@ -39,7 +39,7 @@ def test_create_existing_user_email(client, user):
         '/users/',
         json={
             'username': 'Alice',
-            'email': 'teste@teste.com',
+            'email': user.email,
             'password': 'secret',
         },
     )
@@ -96,9 +96,9 @@ def test_update_users(client, user, token):
     }
 
 
-def test_update_not_found(client, token):
+def test_update_wrong_user_forbidden(client, other_user, token):
     response = client.put(
-        '/users/0',
+        f'/users/{other_user.id}',
         headers={'Authorization': f'Bearer {token}'},
         json={
             'username': 'alice',
@@ -127,9 +127,9 @@ def test_delete_user_not_found(client):
     assert response.json() == {'detail': 'Not authenticated'}
 
 
-def test_delete_user_forbidden(client, token):
+def test_delete_user_wrong_user_forbidden(client, other_user, token):
     response = client.delete(
-        '/users/0', headers={'Authorization': f'Bearer {token}'}
+        f'/users/{other_user.id}', headers={'Authorization': f'Bearer {token}'}
     )
 
     assert response.status_code == HTTPStatus.FORBIDDEN
