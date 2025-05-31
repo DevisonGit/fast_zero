@@ -6,16 +6,35 @@ authors = [
     {name = "devisono",email = "devison_santos@yahoo.com.br"}
 ]
 readme = "README.md"
-requires-python = ">=3.13,<4.0"
+requires-python = ">=3.12,<4.0"
 dependencies = [
     "fastapi[standard] (>=0.115.12,<0.116.0)",
     "pydantic-settings (>=2.9.1,<3.0.0)",
-    "sqlalchemy (>=2.0.41,<3.0.0)",
+    "sqlalchemy[asyncio] (>=2.0.41,<3.0.0)",
     "alembic (>=1.16.1,<2.0.0)",
     "pyjwt (>=2.10.1,<3.0.0)",
-    "pwdlib[argon2] (>=0.2.1,<0.3.0)"
+    "pwdlib[argon2] (>=0.2.1,<0.3.0)",
+    "aiosqlite (>=0.21.0,<0.22.0)"
 ]
 
+[tool.poetry]
+name = "fast-zero"
+version = "0.1.0"
+description = ""
+authors = ["devisono <devison_santos@yahoo.com.br>"]
+readme = "README.md"
+packages = [{include = "fast_zero"}]
+# Dica: use o nome da pasta onde está o seu código principal
+
+[tool.poetry.dependencies]
+python = ">=3.12,<4.0"
+fastapi = {extras = ["standard"], version = ">=0.115.12,<0.116.0"}
+pydantic-settings = ">=2.9.1,<3.0.0"
+sqlalchemy = {extras = ["asyncio"], version = ">=2.0.41,<3.0.0"}
+alembic = ">=1.16.1,<2.0.0"
+pyjwt = ">=2.10.1,<3.0.0"
+pwdlib = {extras = ["argon2"], version = ">=0.2.1,<0.3.0"}
+aiosqlite = ">=0.21.0,<0.22.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
@@ -26,6 +45,7 @@ pytest = "^8.3.5"
 pytest-cov = "^6.1.1"
 taskipy = "^1.14.1"
 ruff = "^0.11.11"
+pytest-asyncio = "^1.0.0"
 
 [tool.ruff]
 line-length = 79
@@ -39,9 +59,10 @@ select = ['I', 'F', 'E', 'W', 'PL', 'PT', 'FAST']
 preview = true
 quote-style = 'single'
 
-[tool.pytest.ini_optons]
+[tool.pytest.ini_options]
 pythonpath = '.'
 addopts = '-p no:warnings'
+asyncio_default_fixture_loop_scope = 'function'
 
 [tool.taskipy.tasks]
 lint = 'ruff check'
@@ -51,3 +72,6 @@ run = 'fastapi dev fast_zero/app.py'
 pre_test = 'task lint'
 test = 'pytest -s -x --cov=fast_zero -vv'
 post_test = 'coverage html'
+
+[tool.coverage.run]
+concurrency = ['thread', 'greenlet']
