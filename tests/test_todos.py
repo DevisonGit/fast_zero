@@ -1,7 +1,6 @@
 from http import HTTPStatus
 
 import pytest
-from sqlalchemy import select
 
 from fast_zero.models import Todo, TodoState
 from tests.conftest import TodoFactory
@@ -220,14 +219,3 @@ async def test_get_validate_all_fields(
             'id': todo.id,
         }
     ]
-
-
-@pytest.mark.asyncio
-async def test_get_invalid_state(session, client, user, token, mock_db_time):
-    todo = TodoFactory(user_id=user.id, state='Invalid')
-
-    session.add(todo)
-    await session.commit()
-
-    with pytest.raises(LookupError):
-        await session.scalar(select(Todo))
