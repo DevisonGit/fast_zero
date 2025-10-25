@@ -1,14 +1,94 @@
 from http import HTTPStatus
 
-from fastapi.testclient import TestClient
 
-from fast_zero.app import app
-
-
-def test_root_deve_retornar_ok_hello_world():
-    client = TestClient(app)
-
+def test_root_deve_retornar_ok_hello_world(client):
     response = client.get('/')
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'message': 'hello world'}
+
+
+def test_root_html_deve_retornar_ok_ola_mundo(client):
+    response = client.get('/html')
+
+    assert response.status_code == HTTPStatus.OK
+    assert '<h1> ola mundo </h1>' in response.text
+
+
+def test_create_user(client):
+    response = client.post(
+        '/users/',
+        json={
+            'username': 'teste',
+            'email': 'teste@test.com',
+            'password': 'secret',
+        },
+    )
+
+    assert response.status_code == HTTPStatus.CREATED
+    assert response.json() == {
+        'username': 'teste',
+        'email': 'teste@test.com',
+        'id': 1,
+    }
+
+
+def test_read_users(client):
+    response = client.get('/users/')
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {
+        'users': [
+            {
+                'username': 'teste',
+                'email': 'teste@test.com',
+                'id': 1,
+            }
+        ]
+    }
+
+
+def test_update_user(client):
+    response = client.put(
+        '/users/1',
+        json={
+            'username': 'another teste',
+            'email': 'teste@test.com',
+            'password': 'secretoso',
+        },
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {
+        'id': 1,
+        'username': 'another teste',
+        'email': 'teste@test.com',
+    }
+
+
+def test_update_user_not_found(client):
+    response = client.put(
+        '/users/2',
+        json={
+            'username': 'another teste',
+            'email': 'teste@test.com',
+            'password': 'secretoso',
+        },
+    )
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json() == {'detail': 'User not found'}
+
+
+def test_delete_user(client):
+    response = client.delete('/users/1')
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {'message': 'User deleted'}
+
+
+def test_user_delete_not_found(client):
+    response = client.delete('/users/2')
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json() == {'detail': 'User not found'}
