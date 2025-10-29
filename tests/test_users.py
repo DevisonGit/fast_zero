@@ -81,9 +81,9 @@ def test_update_user(client, user, token):
     }
 
 
-def test_update_user_not_current_user(client, token):
+def test_update_user_not_current_user(client, token, other_user):
     response = client.put(
-        '/users/2',
+        f'/users/{other_user.id}',
         headers={'Authorization': f'Bearer {token}'},
         json={
             'username': 'another teste',
@@ -96,20 +96,12 @@ def test_update_user_not_current_user(client, token):
     assert response.json() == {'detail': 'Not enough permissions'}
 
 
-def test_update_integrity_error(client, user, token):
-    client.post(
-        '/users/',
-        json={
-            'username': 'another teste',
-            'email': 'anotherteste@test.com',
-            'password': 'secretoso',
-        },
-    )
+def test_update_integrity_error(client, user, token, other_user):
     response_update = client.put(
         f'/users/{user.id}',
         headers={'Authorization': f'Bearer {token}'},
         json={
-            'username': 'another teste',
+            'username': other_user.username,
             'email': 'teste@test.com',
             'password': 'secretoso',
         },
@@ -130,9 +122,9 @@ def test_delete_user(client, user, token):
     assert response.json() == {'message': 'User deleted'}
 
 
-def test_delete_user_not_current_user(client, token):
+def test_delete_user_not_current_user(client, token, other_user):
     response = client.delete(
-        '/users/2', headers={'Authorization': f'Bearer {token}'}
+        f'/users/{other_user.id}', headers={'Authorization': f'Bearer {token}'}
     )
 
     assert response.status_code == HTTPStatus.FORBIDDEN
@@ -140,7 +132,7 @@ def test_delete_user_not_current_user(client, token):
 
 
 def test_read_user_id(client, user):
-    response = client.get('/users/1')
+    response = client.get(f'/users/{user.id}')
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {
