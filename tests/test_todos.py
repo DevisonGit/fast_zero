@@ -230,8 +230,10 @@ async def test_list_todos_should_return_all_expected_field(
 
 
 def test_todo_get_error_title_3_characters(client, token):
+    tiny_string = 'a'
     response = client.get(
-        '/todos/?title=as', headers={'Authorization': f'Bearer {token}'}
+        f'/todos/?title={tiny_string}',
+        headers={'Authorization': f'Bearer {token}'},
     )
 
     assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
@@ -239,8 +241,9 @@ def test_todo_get_error_title_3_characters(client, token):
 
 
 def test_todo_get_error_title_20_characters(client, token):
+    large_string = 'a' * 22
     response = client.get(
-        '/todos/?title=asasdfasdfsdfdsfsdfdsfdsfdsfsdfdsfdfdsfdsfdsf',
+        f'/todos/?title={large_string}',
         headers={'Authorization': f'Bearer {token}'},
     )
 

@@ -2,6 +2,7 @@ from dataclasses import asdict
 
 import pytest
 from sqlalchemy import select
+from sqlalchemy.exc import StatementError
 
 from fast_zero.models import Todo, User
 
@@ -66,7 +67,6 @@ async def test_create_todo_enum_error(session, user):
     )
 
     session.add(todo)
-    await session.commit()
 
-    with pytest.raises(LookupError):
-        await session.scalar(select(Todo))
+    with pytest.raises(StatementError):
+        await session.commit()
