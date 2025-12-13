@@ -2,6 +2,7 @@ from contextlib import contextmanager
 from datetime import datetime
 
 import factory
+import factory.fuzzy
 import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
@@ -11,8 +12,27 @@ from sqlalchemy.pool import StaticPool
 
 from fast_zero.app import app
 from fast_zero.database import get_session
-from fast_zero.models import User, table_registry
+from fast_zero.models import Todo, TodoState, User, table_registry
 from fast_zero.security import get_password_hash
+
+
+class UserFactory(factory.Factory):
+    class Meta:
+        model = User
+
+    username = factory.Sequence(lambda n: f'test.{n}')
+    email = factory.LazyAttribute(lambda obj: f'{obj.username}@teste.com')
+    password = factory.LazyAttribute(lambda obj: f'{obj.username} Secret')
+
+
+class TodoFactory(factory.Factory):
+    class Meta:
+        model = Todo
+
+    title = factory.Faker('text')
+    description = factory.Faker('text')
+    state = factory.fuzzy.FuzzyChoice(TodoState)
+    user_id = 1
 
 
 @pytest.fixture
@@ -102,10 +122,12 @@ def token(client, user):
     return response.json()['access_token']
 
 
-class UserFactory(factory.Factory):
-    class Meta:
-        model = User
+@pytest_asyncio.fixture
+async def todo(session):
+    todo = TodoFactory()
 
-    username = factory.Sequence(lambda n: f'test.{n}')
-    email = factory.LazyAttribute(lambda obj: f'{obj.username}@teste.com')
-    password = factory.LazyAttribute(lambda obj: f'{obj.username} Secret')
+    session.add(todo)
+    await session.commit()
+    await session.refresh(todo)
+
+    return todo
