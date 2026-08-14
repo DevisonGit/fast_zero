@@ -40,7 +40,10 @@ addopts = ['-p', 'no:warnings', '--cov=fast_zero', '--cov-context=test']
 poetry_command = ""
 
 [tool.poe.tasks]
-lint = { cmd = "ruff check" }
+lint.sequence = [
+    { cmd = "typos" },
+    { cmd = "ruff check" },
+]
 format.sequence = [
   { cmd = "ruff check --fix" },
   { cmd = "ruff format" },
